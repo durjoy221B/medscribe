@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot - Smart Pharma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'medical-green': '#059669',
+                        'medical-green-light': '#047857',
+                        'medical-emerald': '#10b981',
+                        'medical-teal': '#0891b2',
+                        'text-primary': '#1e293b',
+                        'text-secondary': '#64748b',
+                        'text-light': '#94a3b8'
+                    },
+                    fontFamily: { 'inter': ['Inter','sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .search-glow:focus {
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+            border-color: #059669;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .quick-btn {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            border: 1px solid #d1fae5;
+            color: #047857;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .quick-btn:hover {
+            background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+            border-color: #059669;
+            color: #059669;
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+        }
+
+        .bot-message {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            color: #1e293b;
+            border: 1px solid #d1fae5;
+            border-radius: 18px 18px 18px 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #059669;
+            animation: typing 1.4s infinite;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-emerald-50 font-inter">
+    <nav class="glass-effect sticky top-0 z-50 px-6 py-4 border-b border-emerald-100">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-medical-green to-medical-green-light rounded-lg flex items-center justify-center" aria-hidden="true">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 8.172V5L8 4z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-text-primary">Smart Pharma</h1>
+                    <p class="text-sm text-text-secondary">AI Chat Assistant</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6 text-sm">
+                <a href="/landing" class="text-text-secondary hover:text-medical-green transition">Landing</a>
+                <a href="/inventory" class="text-text-secondary hover:text-medical-green transition">Inventory</a>
+                <a href="/upload" class="text-text-secondary hover:text-medical-green transition">Upload</a>
+                <a href="/chatbot" class="px-4 py-2 bg-medical-green text-white rounded-lg hover:bg-medical-green-light transition">Chatbot</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        <header class="mb-6">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-text-primary">Chat with our assistant</h2>
+            <p class="mt-2 text-text-secondary">Ask about medicines, availability, or commands like "find paracetamol". Our AI-powered assistant provides instant information about medications.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <section class="lg:col-span-8">
+                <div class="glass-effect rounded-xl p-0 overflow-hidden border border-emerald-100">
+                    <div id="messages" class="h-[480px] overflow-y-auto p-6 space-y-4 bg-white/70">
+                        <!-- Messages appear here -->
+                    </div>
+                    <div class="border-t border-emerald-100 p-4 bg-white/80">
+                        <div class="flex items-center gap-3">
+                            <input id="chat-input" type="text" placeholder="Type a message... (try: find omeprazole)" class="flex-1 px-4 py-3 border border-emerald-200 rounded-lg focus:outline-none search-glow bg-white">
+                            <button id="send-btn" class="btn-primary">Send</button>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-2 text-sm">
+                            <button class="quick-btn">/help</button>
+                            <button class="quick-btn">find paracetamol</button>
+                            <button class="quick-btn">availability of omeprazole</button>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3 text-xs text-text-secondary">Disclaimer: This assistant does not provide medical advice. Always consult with a healthcare professional for medical concerns.</p>
+            </section>
+
+            <aside class="lg:col-span-4">
+                <div class="glass-effect rounded-xl p-6 border border-emerald-100">
+                    <h3 class="text-lg font-semibold text-text-primary">What can I ask?</h3>
+                    <ul class="mt-4 space-y-3">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-medical-green flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-text-secondary text-sm">Find a medicine by brand or generic name</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-medical-green flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-text-secondary text-sm">Check dosage forms and strength</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-medical-green flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-text-secondary text-sm">Get quick links to inventory search</span>
+                        </li>
+                    </ul>
+                    <div class="mt-6">
+                        <a href="/" class="inline-block px-4 py-2 bg-medical-green text-white rounded-lg hover:bg-medical-green-light transition">Open Inventory</a>
+                    </div>
+                </div>
+
+                <div class="mt-6 glass-effect rounded-xl p-5 border border-emerald-100">
+                    <h4 class="text-sm font-semibold text-medical-green mb-3">💡 Pro Tip</h4>
+                    <p class="text-text-secondary text-sm">Use natural language like "find omeprazole" or "availability of paracetamol" for best results. The assistant learns from your queries to provide better responses.</p>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="mt-16 py-10 border-t border-emerald-200">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-text-secondary text-sm">© 2025 Smart Pharma. Premium Healthcare Platform.</p>
+        </div>
+    </footer>
+
+    <script>
+    (function(){
+        const messages = document.getElementById('messages');
+        const input = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        document.querySelectorAll('.quick-btn').forEach(b => b.addEventListener('click', () => { input.value = b.textContent; input.focus(); }));
+
+        function addMessage(text, role){
+            const wrap = document.createElement('div');
+            const isUser = role === 'user';
+            wrap.className = 'flex ' + (isUser ? 'justify-end' : 'justify-start');
+            const bubble = document.createElement('div');
+            bubble.className = 'max-w-[80%] px-4 py-3 rounded-2xl ' + (isUser ? 'user-message' : 'bot-message');
+            bubble.textContent = text;
+            wrap.appendChild(bubble);
+            messages.appendChild(wrap);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addTyping(){
+            const wrap = document.createElement('div');
+            wrap.className = 'flex justify-start';
+            wrap.id = 'typing';
+            const bubble = document.createElement('div');
+            bubble.className = 'px-4 py-3 rounded-2xl bot-message';
+            bubble.innerHTML = '<div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+            wrap.appendChild(bubble);
+            messages.appendChild(wrap);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        function removeTyping(){
+            const t = document.getElementById('typing');
+            if(t) t.remove();
+        }
+
+        async function botReply(userText){
+            const msg = userText.trim();
+            if(!msg) return;
+            if(msg === '/help'){
+                return "Commands: /help, find <name>. Example: find paracetamol. To search inventory, go to the Inventory page.";
+            }
+
+            const findMatch = msg.match(/^(find|search|availability of)\s+(.+)/i);
+            if(findMatch){
+                const query = findMatch[2].trim();
+                try{
+                    const params = new URLSearchParams({ query, page: 1, per_page: 5, search_type: 'brand_name' });
+                    const res = await fetch('/api/medicines/search?' + params.toString());
+                    const data = await res.json();
+                    if(Array.isArray(data.medicines) && data.medicines.length){
+                        const lines = data.medicines.map(m => {
+                            const price = m.price ? ('৳' + Number(m.price).toFixed(2)) : 'N/A';
+                            return `• ${m.brand_name || 'N/A'} (${m.generic || '—'}) — ${m.dosage_form || '—'} ${m.strength || ''} — ${price}`;
+                        });
+                        return `Top matches for "${query}":\n` + lines.join('\n') + `\n\nOpen Inventory for more: /`;
+                    } else {
+                        return `No matches found for "${query}". Try different spelling or open Inventory.`;
+                    }
+                }catch(e){
+                    return "Search service is unavailable right now. Please try again later.";
+                }
+            }
+
+            return "I can help you find medicines. Try: find omeprazole";
+        }
+
+        async function handleSend(){
+            const text = input.value;
+            if(!text.trim()) return;
+            addMessage(text, 'user');
+            input.value = '';
+            addTyping();
+            const reply = await botReply(text);
+            removeTyping();
+            addMessage(reply, 'bot');
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        input.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); handleSend(); }
+        });
+
+        addMessage("Hello! I'm the Smart Pharma assistant. Type /help or try: find paracetamol", 'bot');
+    })();
+    </script>
+</body>
+</html>

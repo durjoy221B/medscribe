@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Inventory - Smart Pharma</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            position: relative;
+        }
+
+        .gradient-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-premium {
+            background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+            border: 1px solid #d1fae5;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(5, 150, 105, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .card-premium:hover::before {
+            left: 100%;
+        }
+
+        .card-premium:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(5, 150, 105, 0.2);
+            border-color: #059669;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(5, 150, 105, 0.4);
+            position: relative;
+            overflow: hidden;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(5, 150, 105, 0.5);
+        }
+
+        .nav-link {
+            position: relative;
+            color: #1e293b;
+            font-weight: 500;
+            transition: color 0.3s;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #059669, #047857);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link:hover {
+            color: #059669;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .pulse-dot::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 2px solid #10b981;
+            border-radius: 50%;
+            animation: pulse-ring 1.5s ease-out infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        .table-row {
+            transition: all 0.2s ease;
+        }
+        
+        .table-row:hover {
+            background: rgba(5, 150, 105, 0.05);
+            transform: scale(1.001);
+        }
+
+        .search-glow:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1), 0 0 0 1px rgba(5, 150, 105, 0.3);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="glass fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" style="text-decoration: none;">
+                    <div class="flex items-center gap-3 cursor-pointer">
+                        <div class="feature-icon w-12 h-12">
+                            <svg class="w-6 h-6 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 8.172V5L8 4z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold gradient-text">Smart Pharma</h1>
+                            <p class="text-xs text-gray-500">Healthcare Excellence</p>
+                        </div>
+                    </div>
+                </a>
+                <div class="flex items-center gap-8">
+                    <a href="/inventory" class="nav-link">Inventory</a>
+                    <a href="/upload" class="nav-link">Upload</a>
+                    <a href="/chatbot" class="nav-link">AI Assistant</a>
+                    <button class="btn-primary text-sm px-6 py-3">Get Started</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg relative pt-32 pb-16 fade-in">
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center text-white">
+                <h1 class="text-5xl font-black leading-tight mb-4">
+                    Medicine Inventory
+                </h1>
+                <p class="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+                    Search and manage your comprehensive pharmaceutical database with lightning-fast precision
+                </p>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+                    <div class="stat-card rounded-2xl p-6 text-white">
+                        <div class="text-4xl font-black mb-2 relative z-10" id="total-medicines">-</div>
+                        <div class="text-white/80 font-medium relative z-10">Total Medicines</div>
+                    </div>
+                    <div class="stat-card rounded-2xl p-6 text-white">
+                        <div class="text-4xl font-black mb-2 relative z-10" id="total-manufacturers">-</div>
+                        <div class="text-white/80 font-medium relative z-10">Manufacturers</div>
+                    </div>
+                    <div class="stat-card rounded-2xl p-6 text-white">
+                        <div class="text-4xl font-black mb-2 relative z-10" id="total-types">-</div>
+                        <div class="text-white/80 font-medium relative z-10">Medicine Types</div>
+                    </div>
+                    <div class="stat-card rounded-2xl p-6 text-white">
+                        <div class="text-4xl font-black mb-2 relative z-10" id="avg-price">-</div>
+                        <div class="text-white/80 font-medium relative z-10">Average Price</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-8 -mt-8 relative z-20">
+        <!-- Search and Filter Section -->
+        <section class="mb-8 fade-in">
+            <div class="card-premium p-6 rounded-2xl shadow-xl">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    <!-- Main Search -->
+                    <div class="lg:col-span-5">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Search Medicines</label>
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                id="main-search"
+                                placeholder="Search by brand name or generic name..."
+                                class="w-full px-4 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:outline-none search-glow transition-all"
+                            >
+                            <svg class="absolute left-4 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <!-- Type Filter -->
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+                        <select id="type-filter" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                            <option value="">All Types</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Dosage Form Filter -->
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Dosage Form</label>
+                        <select id="dosage-filter" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                            <option value="">All Forms</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Search Type Filter -->
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Search Type</label>
+                        <select id="search-type-filter" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                            <option value="brand_name">Brand Name</option>
+                            <option value="generic_name">Generic Name</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Clear Filters -->
+                    <div class="lg:col-span-1">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">&nbsp;</label>
+                        <button id="clear-filters" class="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Medicine Table -->
+        <section class="fade-in">
+            <div class="card-premium rounded-2xl overflow-hidden shadow-xl">
+                <!-- Table Header -->
+                <div class="px-6 py-5 border-b-2 border-green-100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold gradient-text">Medicine Database</h3>
+                            <p class="text-sm text-gray-500 mt-1" id="results-count">Loading...</p>
+                        </div>
+                        <button id="export-btn" class="btn-primary text-sm px-6 py-2.5 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Table Content -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gradient-to-r from-green-50 to-emerald-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-green-100 transition-colors" data-sort="brand_name">
+                                    Brand Name
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-green-100 transition-colors" data-sort="generic">
+                                    Generic Name
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-green-100 transition-colors" data-sort="type">
+                                    Type
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-green-100 transition-colors" data-sort="dosage_form">
+                                    Dosage Form
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-green-100 transition-colors" data-sort="strength">
+                                    Strength
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-green-100 transition-colors" data-sort="manufacturer">
+                                    Manufacturer
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-green-100 transition-colors" data-sort="price">
+                                    Price
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="medicine-table-body" class="bg-white divide-y divide-gray-100">
+                            <!-- Loading state -->
+                            <tr id="loading-row">
+                                <td colspan="8" class="px-6 py-12 text-center">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <div class="w-3 h-3 bg-green-600 rounded-full animate-pulse"></div>
+                                        <div class="w-3 h-3 bg-green-600 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                                        <div class="w-3 h-3 bg-green-600 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                                    </div>
+                                    <p class="text-gray-500 mt-4 font-medium">Loading medicines...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t-2 border-green-100 bg-gradient-to-r from-green-50/30 to-emerald-50/30 flex items-center justify-between">
+                    <div class="text-sm text-gray-600 font-medium">
+                        Showing <span id="showing-from" class="font-bold text-green-700">0</span> to <span id="showing-to" class="font-bold text-green-700">0</span> of <span id="total-results" class="font-bold text-green-700">0</span> results
+                    </div>
+                    <div class="flex items-center space-x-2" id="pagination-controls">
+                        <!-- Pagination buttons will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-16 py-8 bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <div class="feature-icon w-10 h-10">
+                    <svg class="w-5 h-5 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 8.172V5L8 4z"></path>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold">Smart Pharma</span>
+            </div>
+            <p class="text-white/70 text-sm">
+                © 2025 Smart Pharma. Premium Healthcare Management System.
+            </p>
+        </div>
+    </footer>
+
+    <!-- View Medicine Modal -->
+    <div id="view-medicine-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border-0 w-96 shadow-2xl rounded-2xl card-premium">
+            <div class="mt-3">
+                <h3 class="text-xl font-bold gradient-text text-center mb-6" id="view-medicine-title">Medicine Details</h3>
+                <div class="px-4 py-3">
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between border-b border-green-100 pb-2">
+                            <span class="font-semibold text-gray-700">Brand Name:</span>
+                            <span class="text-gray-600" id="view-brand-name"></span>
+                        </div>
+                        <div class="flex justify-between border-b border-green-100 pb-2">
+                            <span class="font-semibold text-gray-700">Generic Name:</span>
+                            <span class="text-gray-600" id="view-generic-name"></span>
+                        </div>
+                        <div class="flex justify-between border-b border-green-100 pb-2">
+                            <span class="font-semibold text-gray-700">Type:</span>
+                            <span class="text-gray-600" id="view-type"></span>
+                        </div>
+                        <div class="flex justify-between border-b border-green-100 pb-2">
+                            <span class="font-semibold text-gray-700">Dosage Form:</span>
+                            <span class="text-gray-600" id="view-dosage-form"></span>
+                        </div>
+                        <div class="flex justify-between border-b border-green-100 pb-2">
+                            <span class="font-semibold text-gray-700">Strength:</span>
+                            <span class="text-gray-600" id="view-strength"></span>
+                        </div>
+                        <div class="flex justify-between border-b border-green-100 pb-2">
+                            <span class="font-semibold text-gray-700">Manufacturer:</span>
+                            <span class="text-gray-600" id="view-manufacturer"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-semibold text-gray-700">Price:</span>
+                            <span class="text-gray-600 font-bold" id="view-price"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-4 py-4 mt-4">
+                    <button id="view-medicine-close-btn" class="btn-primary w-full">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Medicine Modal -->
+    <div id="edit-medicine-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-10 mx-auto p-5 border-0 w-96 shadow-2xl rounded-2xl card-premium">
+            <div class="mt-3">
+                <h3 class="text-xl font-bold gradient-text text-center mb-6">Edit Medicine</h3>
+                <div class="px-4 py-3">
+                    <form id="edit-medicine-form" class="space-y-4">
+                        <input type="hidden" id="edit-medicine-id">
+                        <div>
+                            <label for="edit-brand-name" class="block text-sm font-semibold text-gray-700 mb-1">Brand Name</label>
+                            <input type="text" id="edit-brand-name" class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                        </div>
+                        <div>
+                            <label for="edit-generic-name" class="block text-sm font-semibold text-gray-700 mb-1">Generic Name</label>
+                            <input type="text" id="edit-generic-name" class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                        </div>
+                        <div>
+                            <label for="edit-type" class="block text-sm font-semibold text-gray-700 mb-1">Type</label>
+                            <input type="text" id="edit-type" class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                        </div>
+                        <div>
+                            <label for="edit-dosage-form" class="block text-sm font-semibold text-gray-700 mb-1">Dosage Form</label>
+                            <input type="text" id="edit-dosage-form" class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                        </div>
+                        <div>
+                            <label for="edit-strength" class="block text-sm font-semibold text-gray-700 mb-1">Strength</label>
+                            <input type="text" id="edit-strength" class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                        </div>
+                        <div>
+                            <label for="edit-manufacturer" class="block text-sm font-semibold text-gray-700 mb-1">Manufacturer</label>
+                            <input type="text" id="edit-manufacturer" class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                        </div>
+                        <div>
+                            <label for="edit-price" class="block text-sm font-semibold text-gray-700 mb-1">Price</label>
+                            <input type="number" step="0.01" id="edit-price" class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none search-glow">
+                        </div>
+                        <div class="pt-4 space-y-2">
+                            <button type="submit" class="btn-primary w-full">
+                                Save Changes
+                            </button>
+                            <button type="button" id="edit-medicine-close-btn" class="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize medicine inventory system
+            if (typeof MedicineInventory !== 'undefined') {
+                window.inventory = new MedicineInventory();
+            }
+            
+            // Demo data for stats (replace with actual data from your backend)
+            setTimeout(() => {
+                document.getElementById('total-medicines').textContent = '50,000+';
+                document.getElementById('total-manufacturers').textContent = '200+';
+                document.getElementById('total-types').textContent = '150+';
+                document.getElementById('avg-price').textContent = '৳45.50';
+            }, 500);
+        });
+    </script>
+</body>
+</html>

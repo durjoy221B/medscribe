@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Prescription - Smart Pharma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'medical-green': '#059669',
+                        'medical-green-light': '#047857',
+                        'medical-emerald': '#10b981',
+                        'medical-teal': '#0891b2',
+                        'text-primary': '#1e293b',
+                        'text-secondary': '#64748b',
+                        'text-light': '#94a3b8'
+                    },
+                    fontFamily: { 'inter': ['Inter','sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(5, 150, 105, 0.15);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .btn-premium:active {
+            transform: translateY(0);
+        }
+
+        .btn-premium:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { background-color: #059669; }
+            50% { background-color: #d1d5db; }
+        }
+
+        .animate-pulse-green {
+            animation: pulse-green 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .animate-pulse-green:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .animate-pulse-green:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .error-message {
+            background-color: #fee;
+            border-left: 4px solid #f44;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-emerald-50 font-inter">
+    <nav class="glass-effect sticky top-0 z-50 px-6 py-4 border-b border-emerald-100">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-medical-green to-medical-green-light rounded-lg flex items-center justify-center" aria-hidden="true">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 8.172V5L8 4z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-text-primary">Smart Pharma</h1>
+                    <p class="text-sm text-text-secondary">Upload Prescription</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6 text-sm">
+                <a href="/landing" class="text-text-secondary hover:text-medical-green transition">Landing</a>
+                <a href="/inventory" class="text-text-secondary hover:text-medical-green transition">Inventory</a>
+                <a href="/chatbot" class="text-text-secondary hover:text-medical-green transition">Chatbot</a>
+                <a href="/upload" class="px-4 py-2 bg-medical-green text-white rounded-lg hover:bg-medical-green-light transition">Upload</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        <header class="mb-8">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-text-primary">Upload your prescription</h2>
+            <p class="mt-2 text-text-secondary">Drag and drop an image or PDF, or click to select a file. We'll extract medicine names and details with our AI-powered system.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <section class="lg:col-span-7">
+                <div id="drop-zone" class="glass-effect rounded-xl p-6 border-2 border-dashed border-emerald-200 hover-lift focus-within:ring-2 focus-within:ring-medical-green transition" tabindex="0" aria-label="Upload area">
+                    <input id="file-input" type="file" accept="image/*,application/pdf" class="hidden" />
+                    <div class="flex flex-col items-center justify-center py-12 pointer-events-none" id="placeholder">
+                        <div class="w-16 h-16 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-full flex items-center justify-center mb-4">
+                            <svg class="w-8 h-8 text-medical-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h10a4 4 0 004-4M7 10l5-5m0 0l5 5m-5-5v12"></path>
+                            </svg>
+                        </div>
+                        <p class="text-text-primary font-semibold">Drag and drop your file here</p>
+                        <p class="text-text-secondary text-sm mt-1">Images (JPG, PNG) or PDF up to 10MB</p>
+                        <button id="browse-btn" type="button" class="btn-premium mt-5 pointer-events-auto">Browse files</button>
+                    </div>
+
+                    <div id="preview" class="hidden">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="text-sm text-text-secondary">
+                                <span id="file-name" class="font-medium text-text-primary"></span>
+                                <span id="file-size" class="ml-2"></span>
+                            </div>
+                            <button id="reset-btn" class="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-md hover:bg-slate-300 transition">Reset</button>
+                        </div>
+                        <div id="image-container" class="rounded-lg overflow-hidden bg-white border border-emerald-200 hidden">
+                            <img id="image-preview" alt="Selected prescription preview" class="w-full h-auto max-h-[480px] object-contain" />
+                        </div>
+                        <div id="pdf-container" class="rounded-lg overflow-hidden bg-white border border-emerald-200 p-6 text-center hidden">
+                            <div class="flex items-center justify-center space-x-3">
+                                <svg class="w-6 h-6 text-medical-green" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 0L1.605 6v12L12 24l10.395-6V6z"></path>
+                                </svg>
+                                <span class="text-text-primary font-medium">PDF selected</span>
+                            </div>
+                            <p id="pdf-name" class="mt-2 text-text-secondary text-sm"></p>
+                        </div>
+                        <div class="mt-6 flex flex-wrap gap-3">
+                            <button id="extract-btn" class="btn-premium">Extract Medicines</button>
+                        </div>
+                        <p class="mt-3 text-xs text-text-secondary">Extraction uses advanced OCR technology for accurate medicine detection.</p>
+                        <div id="error-container"></div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="lg:col-span-5">
+                <div class="glass-effect rounded-xl p-6 border border-emerald-100">
+                    <h3 class="text-xl font-semibold text-text-primary">Detected information</h3>
+                    <p class="text-sm text-text-secondary mb-4">Results will appear here after extraction.</p>
+
+                    <div id="progress" class="hidden">
+                        <div class="flex items-center space-x-3 text-text-secondary">
+                            <div class="w-3 h-3 bg-medical-green rounded-full animate-pulse-green"></div>
+                            <div class="w-3 h-3 bg-medical-green rounded-full animate-pulse-green"></div>
+                            <div class="w-3 h-3 bg-medical-green rounded-full animate-pulse-green"></div>
+                            <span>Analyzing prescription...</span>
+                        </div>
+                    </div>
+
+                    <div id="results" class="hidden">
+                        <div class="space-y-4">
+                            <div>
+                                <div class="text-sm uppercase tracking-wide text-medical-green font-semibold">Medicines</div>
+                                <ul id="medicine-list" class="mt-2 space-y-2 text-text-primary"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-xs text-text-secondary">
+                    By uploading, you agree to process files for extraction. Do not upload sensitive personal data beyond medical information necessary for prescription analysis.
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="mt-16 py-10 border-t border-emerald-200">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-text-secondary text-sm">© 2025 Smart Pharma. Premium Healthcare Platform.</p>
+        </div>
+    </footer>
+
+    <script>
+    (function(){
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const browseBtn = document.getElementById('browse-btn');
+        const placeholder = document.getElementById('placeholder');
+        const preview = document.getElementById('preview');
+        const resetBtn = document.getElementById('reset-btn');
+        const fileNameEl = document.getElementById('file-name');
+        const fileSizeEl = document.getElementById('file-size');
+        const imageContainer = document.getElementById('image-container');
+        const imagePreview = document.getElementById('image-preview');
+        const pdfContainer = document.getElementById('pdf-container');
+        const pdfName = document.getElementById('pdf-name');
+        const extractBtn = document.getElementById('extract-btn');
+        const progress = document.getElementById('progress');
+        const results = document.getElementById('results');
+        const medicineList = document.getElementById('medicine-list');
+        const errorContainer = document.getElementById('error-container');
+
+        let currentFile = null;
+
+        function formatSize(bytes){
+            if (!bytes && bytes !== 0) return '';
+            const units = ['B','KB','MB','GB'];
+            let i = 0;
+            let size = bytes;
+            while(size >= 1024 && i < units.length-1){ size /= 1024; i++; }
+            return size.toFixed(1) + ' ' + units[i];
+        }
+
+        function showError(message) {
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    <p class="text-sm text-red-700 font-medium">Error: ${message}</p>
+                </div>
+            `;
+        }
+
+        function clearError() {
+            errorContainer.innerHTML = '';
+        }
+
+        function resetAll(){
+            currentFile = null;
+            fileInput.value = '';
+            placeholder.classList.remove('hidden');
+            preview.classList.add('hidden');
+            imageContainer.classList.add('hidden');
+            pdfContainer.classList.add('hidden');
+            progress.classList.add('hidden');
+            results.classList.add('hidden');
+            imagePreview.src = '';
+            pdfName.textContent = '';
+            fileNameEl.textContent = '';
+            fileSizeEl.textContent = '';
+            medicineList.innerHTML = '';
+            clearError();
+        }
+
+        function handleFile(file){
+            currentFile = file;
+            placeholder.classList.add('hidden');
+            preview.classList.remove('hidden');
+            fileNameEl.textContent = file.name;
+            fileSizeEl.textContent = '(' + formatSize(file.size) + ')';
+            clearError();
+
+            const type = file.type;
+            if(type.startsWith('image/')){
+                pdfContainer.classList.add('hidden');
+                imageContainer.classList.remove('hidden');
+                const reader = new FileReader();
+                reader.onload = (e) => { imagePreview.src = e.target.result; };
+                reader.readAsDataURL(file);
+            } else if(type === 'application/pdf') {
+                imageContainer.classList.add('hidden');
+                pdfContainer.classList.remove('hidden');
+                pdfName.textContent = file.name;
+            } else {
+                showError('Please upload an image (JPG, PNG) or PDF file');
+                resetAll();
+            }
+        }
+
+        // Drag behaviors
+        ['dragenter','dragover'].forEach(evt => {
+            dropZone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('ring-2','ring-medical-green','bg-emerald-50/60');
+            });
+        });
+        ['dragleave','drop'].forEach(evt => {
+            dropZone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('ring-2','ring-medical-green','bg-emerald-50/60');
+            });
+        });
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if(files && files[0]) handleFile(files[0]);
+        });
+
+        // Click behaviors
+        dropZone.addEventListener('click', (e) => {
+            // Only trigger if clicking the drop zone itself, not child elements
+            if(e.target === dropZone || e.target === placeholder || placeholder.contains(e.target)) {
+                fileInput.click();
+            }
+        });
+        browseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) handleFile(file);
+        });
+
+        // Reset
+        resetBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetAll();
+        });
+
+        // Real API extraction
+        extractBtn.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Prevent triggering dropZone click
+            
+            if(!currentFile){
+                showError('Please select a file first.');
+                return;
+            }
+
+            // Check file type
+            if(!currentFile.type.startsWith('image/')) {
+                showError('Currently only image files are supported for extraction. PDF support coming soon.');
+                return;
+            }
+
+            progress.classList.remove('hidden');
+            results.classList.add('hidden');
+            medicineList.innerHTML = '';
+            clearError();
+            extractBtn.disabled = true;
+            extractBtn.textContent = 'Extracting...';
+
+            try {
+                // Create FormData to send file
+                const formData = new FormData();
+                formData.append('file', currentFile);
+
+                // Call the backend API
+                const response = await fetch('/explain-image/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                progress.classList.add('hidden');
+                results.classList.remove('hidden');
+
+                // Display extracted medicines
+                if (Object.keys(data).length === 0) {
+                    medicineList.innerHTML = '<li class="text-sm p-2 text-text-secondary italic">No medicines detected in the prescription</li>';
+                } else {
+                    Object.entries(data).forEach(([key, medicine]) => {
+                        const li = document.createElement('li');
+                        li.className = 'text-sm p-3 bg-emerald-50 rounded border-l-4 border-medical-green';
+                        
+                        const nameDiv = document.createElement('div');
+                        nameDiv.className = 'font-semibold text-text-primary mb-1';
+                        nameDiv.textContent = medicine.name;
+                        
+                        const detailsDiv = document.createElement('div');
+                        detailsDiv.className = 'text-xs text-text-secondary';
+                        detailsDiv.textContent = `Strength: ${medicine.strength} • Type: ${medicine.dosage_type}`;
+                        
+                        li.appendChild(nameDiv);
+                        li.appendChild(detailsDiv);
+                        medicineList.appendChild(li);
+                    });
+                }
+            } catch (error) {
+                console.error('Extraction error:', error);
+                progress.classList.add('hidden');
+                showError(error.message || 'Failed to extract medicines. Please try again.');
+            } finally {
+                extractBtn.disabled = false;
+                extractBtn.textContent = 'Extract Medicines';
+            }
+        });
+
+        // Init
+        resetAll();
+    })();
+    </script>
+</body>
+</html>
