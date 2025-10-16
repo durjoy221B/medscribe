@@ -57,6 +57,12 @@
             transform: translateY(0);
         }
 
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .quick-btn {
             background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
             border: 1px solid #d1fae5;
@@ -117,6 +123,46 @@
             0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
             30% { transform: translateY(-10px); opacity: 1; }
         }
+
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-connected {
+            background: #d1fae5;
+            color: #047857;
+        }
+
+        .status-disconnected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-connected .status-dot {
+            background: #047857;
+            animation: pulse 2s infinite;
+        }
+
+        .status-disconnected .status-dot {
+            background: #991b1b;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-emerald-50 font-inter">
@@ -133,11 +179,17 @@
                     <p class="text-sm text-text-secondary">AI Chat Assistant</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-6 text-sm">
-                <a href="/landing" class="text-text-secondary hover:text-medical-green transition">Landing</a>
-                <a href="/inventory" class="text-text-secondary hover:text-medical-green transition">Inventory</a>
-                <a href="/upload" class="text-text-secondary hover:text-medical-green transition">Upload</a>
-                <a href="/chatbot" class="px-4 py-2 bg-medical-green text-white rounded-lg hover:bg-medical-green-light transition">Chatbot</a>
+            <div class="flex items-center space-x-6">
+                <div id="connection-status" class="connection-status status-disconnected">
+                    <span class="status-dot"></span>
+                    <span id="status-text">Connecting...</span>
+                </div>
+                <div class="flex items-center space-x-6 text-sm">
+                    <a href="/landing" class="text-text-secondary hover:text-medical-green transition">Landing</a>
+                    <a href="/inventory" class="text-text-secondary hover:text-medical-green transition">Inventory</a>
+                    <a href="/upload" class="text-text-secondary hover:text-medical-green transition">Upload</a>
+                    <a href="/chatbot" class="px-4 py-2 bg-medical-green text-white rounded-lg hover:bg-medical-green-light transition">Chatbot</a>
+                </div>
             </div>
         </div>
     </nav>
@@ -216,7 +268,75 @@
         const messages = document.getElementById('messages');
         const input = document.getElementById('chat-input');
         const sendBtn = document.getElementById('send-btn');
-        document.querySelectorAll('.quick-btn').forEach(b => b.addEventListener('click', () => { input.value = b.textContent; input.focus(); }));
+        const statusElement = document.getElementById('connection-status');
+        const statusText = document.getElementById('status-text');
+        
+        let ws = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        
+        // WebSocket connection setup
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                reconnectAttempts = 0;
+                updateConnectionStatus(true);
+                sendBtn.disabled = false;
+                addMessage("Hello! I'm connected and ready to help. Type /help or try: find paracetamol", 'bot');
+            };
+            
+            ws.onmessage = function(event) {
+                removeTyping();
+                addMessage(event.data, 'bot');
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus(false);
+            };
+            
+            ws.onclose = function() {
+                console.log('WebSocket disconnected');
+                updateConnectionStatus(false);
+                sendBtn.disabled = true;
+                
+                // Attempt to reconnect
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    statusText.textContent = `Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`;
+                    setTimeout(connectWebSocket, 2000 * reconnectAttempts);
+                } else {
+                    statusText.textContent = 'Connection failed';
+                    addMessage("Connection lost. Please refresh the page to reconnect.", 'bot');
+                }
+            };
+        }
+        
+        function updateConnectionStatus(connected) {
+            if (connected) {
+                statusElement.className = 'connection-status status-connected';
+                statusText.textContent = 'Connected';
+            } else {
+                statusElement.className = 'connection-status status-disconnected';
+                statusText.textContent = 'Disconnected';
+            }
+        }
+        
+        // Initialize WebSocket connection
+        connectWebSocket();
+        
+        // Quick action buttons
+        document.querySelectorAll('.quick-btn').forEach(b => {
+            b.addEventListener('click', () => {
+                input.value = b.textContent;
+                input.focus();
+            });
+        });
 
         function addMessage(text, role){
             const wrap = document.createElement('div');
@@ -224,6 +344,7 @@
             wrap.className = 'flex ' + (isUser ? 'justify-end' : 'justify-start');
             const bubble = document.createElement('div');
             bubble.className = 'max-w-[80%] px-4 py-3 rounded-2xl ' + (isUser ? 'user-message' : 'bot-message');
+            bubble.style.whiteSpace = 'pre-wrap';
             bubble.textContent = text;
             wrap.appendChild(bubble);
             messages.appendChild(wrap);
@@ -247,54 +368,30 @@
             if(t) t.remove();
         }
 
-        async function botReply(userText){
-            const msg = userText.trim();
-            if(!msg) return;
-            if(msg === '/help'){
-                return "Commands: /help, find <name>. Example: find paracetamol. To search inventory, go to the Inventory page.";
+        function handleSend(){
+            const text = input.value.trim();
+            if(!text) return;
+            
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addMessage("Connection lost. Please wait while reconnecting...", 'bot');
+                return;
             }
-
-            const findMatch = msg.match(/^(find|search|availability of)\s+(.+)/i);
-            if(findMatch){
-                const query = findMatch[2].trim();
-                try{
-                    const params = new URLSearchParams({ query, page: 1, per_page: 5, search_type: 'brand_name' });
-                    const res = await fetch('/api/medicines/search?' + params.toString());
-                    const data = await res.json();
-                    if(Array.isArray(data.medicines) && data.medicines.length){
-                        const lines = data.medicines.map(m => {
-                            const price = m.price ? ('৳' + Number(m.price).toFixed(2)) : 'N/A';
-                            return `• ${m.brand_name || 'N/A'} (${m.generic || '—'}) — ${m.dosage_form || '—'} ${m.strength || ''} — ${price}`;
-                        });
-                        return `Top matches for "${query}":\n` + lines.join('\n') + `\n\nOpen Inventory for more: /`;
-                    } else {
-                        return `No matches found for "${query}". Try different spelling or open Inventory.`;
-                    }
-                }catch(e){
-                    return "Search service is unavailable right now. Please try again later.";
-                }
-            }
-
-            return "I can help you find medicines. Try: find omeprazole";
-        }
-
-        async function handleSend(){
-            const text = input.value;
-            if(!text.trim()) return;
+            
             addMessage(text, 'user');
             input.value = '';
             addTyping();
-            const reply = await botReply(text);
-            removeTyping();
-            addMessage(reply, 'bot');
+            
+            // Send message through WebSocket
+            ws.send(text);
         }
 
         sendBtn.addEventListener('click', handleSend);
         input.addEventListener('keydown', (e) => {
-            if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); handleSend(); }
+            if(e.key === 'Enter' && !e.shiftKey){ 
+                e.preventDefault(); 
+                handleSend(); 
+            }
         });
-
-        addMessage("Hello! I'm the Smart Pharma assistant. Type /help or try: find paracetamol", 'bot');
     })();
     </script>
 </body>

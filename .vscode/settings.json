@@ -1,0 +1,9 @@
+{
+    "workbench.preferredDarkColorTheme": "Abyss",
+    "workbench.colorTheme": "One Monokai",
+    "workbench.preferredHighContrastColorTheme": "Monokai Dimmed",
+    "workbench.preferredHighContrastLightColorTheme": "Monokai",
+    "workbench.preferredLightColorTheme": "Default Dark Modern",
+    "terminal.integrated.drawBoldTextInBrightColors": true,
+    "terminal.integrated.minimumContrastRatio": 4.5
+}

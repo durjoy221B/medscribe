@@ -40,3 +40,4 @@ Return the result strictly in this JSON format with lists:
 """
 
 
+CHATBOT_PROMPT = """ """
