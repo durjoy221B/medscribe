@@ -17,6 +17,7 @@ from schemas import (
     MedicineStats
 )
 from routers.prescription_route import prescription_router
+from routers.chatbot_route import chatbot_router
 import crud
 
 # Create FastAPI app
@@ -28,7 +29,9 @@ app = FastAPI(
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 app.include_router(prescription_router, tags=["Prescriptions"])
+app.include_router(chatbot_router, tags=["Chatbot"])
 
 # Templates
 templates = Jinja2Templates(directory="templates")
@@ -59,9 +62,11 @@ async def inventory_page(request: Request):
 async def upload_prescription_page(request: Request):
     return templates.TemplateResponse("upload.html", {"request": request})
 
-@app.get("/chatbot", response_class=HTMLResponse)
-async def chatbot_page(request: Request):
-    return templates.TemplateResponse("chatbot.html", {"request": request})
+# @app.get("/chatbot", response_class=HTMLResponse)
+# async def chatbot_page(request: Request):
+#     prescription_info = getattr(request.app.state, "extra_info_prompt", None)
+#     print(":::::::: ->",prescription_info)
+#     return templates.TemplateResponse("chatbot.html", {"request": request})
 
 # API Endpoints
 
