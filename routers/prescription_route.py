@@ -21,5 +21,5 @@ async def explain_image(file: UploadFile, request: Request):
 
     # Store the response in the request state
     request.app.state.extra_info_prompt = response
-    
+
     return response

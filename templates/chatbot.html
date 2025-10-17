@@ -270,66 +270,19 @@
         const sendBtn = document.getElementById('send-btn');
         const statusElement = document.getElementById('connection-status');
         const statusText = document.getElementById('status-text');
-        
-        let ws = null;
-        let reconnectAttempts = 0;
-        const maxReconnectAttempts = 5;
-        
-        // WebSocket connection setup
-        function connectWebSocket() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.host}/ws`;
-            
-            ws = new WebSocket(wsUrl);
-            
-            ws.onopen = function() {
-                console.log('WebSocket connected');
-                reconnectAttempts = 0;
-                updateConnectionStatus(true);
-                sendBtn.disabled = false;
-                addMessage("Hello! I'm connected and ready to help. Type /help or try: find paracetamol", 'bot');
-            };
-            
-            ws.onmessage = function(event) {
-                removeTyping();
-                addMessage(event.data, 'bot');
-            };
-            
-            ws.onerror = function(error) {
-                console.error('WebSocket error:', error);
-                updateConnectionStatus(false);
-            };
-            
-            ws.onclose = function() {
-                console.log('WebSocket disconnected');
-                updateConnectionStatus(false);
-                sendBtn.disabled = true;
-                
-                // Attempt to reconnect
-                if (reconnectAttempts < maxReconnectAttempts) {
-                    reconnectAttempts++;
-                    statusText.textContent = `Reconnecting... (${reconnectAttempts}/${maxReconnectAttempts})`;
-                    setTimeout(connectWebSocket, 2000 * reconnectAttempts);
-                } else {
-                    statusText.textContent = 'Connection failed';
-                    addMessage("Connection lost. Please refresh the page to reconnect.", 'bot');
-                }
-            };
-        }
-        
+
+        // Set status to connected (since HTTP is stateless)
         function updateConnectionStatus(connected) {
             if (connected) {
                 statusElement.className = 'connection-status status-connected';
-                statusText.textContent = 'Connected';
+                statusText.textContent = 'Ready';
             } else {
                 statusElement.className = 'connection-status status-disconnected';
-                statusText.textContent = 'Disconnected';
+                statusText.textContent = 'Unavailable';
             }
         }
-        
-        // Initialize WebSocket connection
-        connectWebSocket();
-        
+        updateConnectionStatus(true);
+
         // Quick action buttons
         document.querySelectorAll('.quick-btn').forEach(b => {
             b.addEventListener('click', () => {
@@ -362,27 +315,39 @@
             messages.appendChild(wrap);
             messages.scrollTop = messages.scrollHeight;
         }
-        
+
         function removeTyping(){
             const t = document.getElementById('typing');
             if(t) t.remove();
         }
 
-        function handleSend(){
+        async function handleSend(){
             const text = input.value.trim();
             if(!text) return;
-            
-            if (!ws || ws.readyState !== WebSocket.OPEN) {
-                addMessage("Connection lost. Please wait while reconnecting...", 'bot');
-                return;
-            }
-            
+
             addMessage(text, 'user');
             input.value = '';
             addTyping();
-            
-            // Send message through WebSocket
-            ws.send(text);
+
+            try {
+                const response = await fetch('/chatbot/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await response.json();
+                removeTyping();
+                if (data.response) {
+                    addMessage(data.response, 'bot');
+                } else if (data.error) {
+                    addMessage('Error: ' + data.error, 'bot');
+                } else {
+                    addMessage('Unknown error occurred.', 'bot');
+                }
+            } catch (err) {
+                removeTyping();
+                addMessage('Network error. Please try again.', 'bot');
+            }
         }
 
         sendBtn.addEventListener('click', handleSend);

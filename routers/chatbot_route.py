@@ -1,13 +1,25 @@
-from fastapi import APIRouter, WebSocket, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse, HTMLResponse
+from pydantic import BaseModel
+from fastapi.templating import Jinja2Templates
 from services.chat_service import create_chat
 
-
 templates = Jinja2Templates(directory="templates")
-
 chatbot_router = APIRouter()
+
+class ChatMessage(BaseModel):
+    message: str
+
+# POST endpoint for chat messages (replaces websocket)
+@chatbot_router.post("/chatbot/message")
+async def chat_message(request: Request, chat: ChatMessage):
+    medicine_information = getattr(request.app.state, "medicine_information", None)
+    try:
+        response = create_chat(medicine_information).send_message(message=chat.message).text
+        return JSONResponse(content={"response": response})
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 @chatbot_router.get("/chatbot", response_class=HTMLResponse)
 async def chatbot_page(request: Request):
@@ -15,19 +27,3 @@ async def chatbot_page(request: Request):
 
     return templates.TemplateResponse("chatbot.html", {"request": request})
 
-@chatbot_router.websocket("/ws")
-async def web_socket(websocket: WebSocket):
-    await websocket.accept()
-    
-    medicine_information = getattr(websocket.app.state, "medicine_information", None)
-
-
-    while True:
-        try:
-            data = await websocket.receive_text()
-            print(f"Received message: {data}")
-            # Process the message and send response
-            await websocket.send_text(f"{create_chat(medicine_information).send_message(message=data).text}")
-        except Exception as e:
-            print(f"WebSocket error: {e}")
-            break
